@@ -19,7 +19,7 @@ class NoQuotationsException(Exception):
     def __init__(self, url):
         self.err_msg = f"Quotations is yet avaliable on:\n {url}"
 
-def get_price(cob_date = None):
+def get_price(cob_date = None, filter_suspended: bool = True):
 
     if not cob_date: cob_date = date.today()
     url = f"https://www.hkex.com.hk/eng/stat/smstat/dayquot/d{cob_date:%y%m%d}e.htm"
@@ -54,22 +54,23 @@ def get_price(cob_date = None):
     # Regex to find all quoatation in the section into Dataframes #
     pattern = re.compile(quotaion_ptrn, re.MULTILINE)
     qs = pattern.findall(sec)
-    qs_df = pd.DataFrame(qs, columns=['code', 'ccy', 'open', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover'])
+    qs_df = pd.DataFrame(qs, columns=['code', 'ccy', 'prev_close', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover'])
+    qs_df['is_suspended'] = False
 
-    #pattern = re.compile(suspended_ptrn, re.MULTILINE)
-    #suspended = pattern.findall(sec)
-    #suspended_df = pd.DataFrame(suspended, columns=['code', 'ccy'])
+    if not filter_suspended:
+        pattern = re.compile(suspended_ptrn, re.MULTILINE)
+        suspended = pattern.findall(sec)
+        suspended_df = pd.DataFrame(suspended, columns=['code', 'ccy'])
+        suspended_df['is_suspended'] = True
+
+        pd.concte([qs_df, suspended_df], ignore_index=True)
     
     # Massage the Dataframes #
-    #qs_df['dt'] = pd.to_datetime(cob_date)
-    #suspended_df['dt'] = pd.to_datetime(cob_date)
-    qs_df['is_suspended'] = False
-    #suspended_df['is_suspended'] = True
+    qs_df['dt'] = pd.to_datetime(cob_date).date()
+      
     qs_df = qs_df.replace('(?:N/A|-)', np.NaN, regex=True)
-    qs_df[['open', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover']] = qs_df[['open', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover']].replace(",", "", regex=True)
-    qs_df[['open', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover']] = qs_df[['open', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover']].apply(pd.to_numeric)
-    #qs_df.info()
-    #suspended_df.info()
-
-    return qs_df
+    qs_df[['prev_close', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover']] = qs_df[['prev_close', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover']].replace(",", "", regex=True)
+    qs_df[['prev_close', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover']] = qs_df[['prev_close', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover']].apply(pd.to_numeric)
+    
+    return qs_df[['dt', 'code', 'ccy', 'prev_close', 'close', 'high', 'low', 'bid', 'ask', 'shares_traded', 'turnover', 'is_suspended']]
 
