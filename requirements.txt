@@ -1,6 +1,6 @@
 requests
 pandas
 beautifulsoup4
-psaw
+pmaw
 plotly
 voila
