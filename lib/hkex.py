@@ -19,6 +19,28 @@ class NoQuotationsException(Exception):
     def __init__(self, url):
         self.err_msg = f"Quotations is yet avaliable on:\n {url}"
 
+
+def get_all_industry():
+    df = pd.read_json('./lib/hkex_industry_map.json')
+    df['code'] = df['code'].astype('str')
+    return df
+
+
+def get_industry(code):
+
+    url = f"http://www.aastocks.com/en/stocks/analysis/company-fundamental/?symbol={code.zfill(5)}"
+
+    page = requests.get(url)
+    soup = bs(page.content, 'html.parser')
+    industry_td = soup.select_one('td:contains("Industry")')
+
+    try:
+        return industry_td.findNext('td').contents[0]
+    except:
+        print(url)
+        return "Can't fetch: {url}"
+
+
 def get_price(cob_date = None, filter_suspended: bool = True):
 
     if not cob_date: cob_date = date.today()
