@@ -88,12 +88,12 @@ def get_price(cob_date = None, filter_suspended: bool = True):
         suspended_df = pd.DataFrame(suspended, columns=['code', 'ccy'])
         suspended_df['is_suspended'] = True
 
-        pd.concat([qs_df, suspended_df], ignore_index=True)
+        qs_df = pd.concat([qs_df, suspended_df], ignore_index=True)
     
     # Massage the Dataframes #
     qs_df['dt'] = pd.to_datetime(cob_date).date()
       
-    qs_df = qs_df.replace('(?:N/A|-)', np.NaN, regex=True)
+    qs_df.replace('(?:N/A|-)', np.NaN, regex=True, inplace=True)
     qs_df[['prev_close', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover']] = qs_df[['prev_close', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover']].replace(",", "", regex=True)
     qs_df[['prev_close', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover']] = qs_df[['prev_close', 'ask', 'high', 'shares_traded', 'close', 'bid', 'low', 'turnover']].apply(pd.to_numeric)
     
