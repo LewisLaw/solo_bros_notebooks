@@ -21,7 +21,10 @@ class NoQuotationsException(Exception):
 
 
 def get_all_industry():
-    df = pd.read_json('./lib/hkex_industry_map.json')
+    
+    df_ind = pd.read_json('./lib/hkex_industry_map.json')
+    df_sec = pd.read_json('./lib/industry_sector_map.json')
+    df = pd.merge(df_ind, df_sec, how='left', on=['industry'])
     df['code'] = df['code'].astype('str')
     return df
 
