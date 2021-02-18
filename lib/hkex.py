@@ -7,13 +7,6 @@ from datetime import date, datetime
 
 
 ISO_CCY = ["HKD","AUD","CAD","CNY","EUR","GBP","JPY","SGD","USD"]
-DB_CONFIG = {'usr': 'solo_bros',
-             'pwd': '0n9SoloBros!',
-             'host': '192.168.1.186',
-             'port': '3307',
-             'db': 'solo_bros',
-             'tbl': 'hkex_prc'
-             }
 
 class NoQuotationsException(Exception):
     def __init__(self, url):
